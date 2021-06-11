@@ -53,7 +53,7 @@ const Item: React.FC<ItemProps> = ({
   const changeAmount = useCallback(add => {
     setData(state => {
       const amount = state.amount + add;
-      if (amount <= 0 || amount >= 99) {
+      if (amount < 0 || amount > 99) {
         return state;
       }
 
@@ -148,7 +148,7 @@ const Item: React.FC<ItemProps> = ({
           selectItem(
             id,
             evt.nativeEvent.locationX,
-            evt.nativeEvent.locationY + 100,
+            evt.nativeEvent.locationY + 50,
           )
         }>
         <ItemHeader>
