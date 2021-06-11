@@ -99,7 +99,7 @@ const ListItem: React.FC<ListProps> = ({id, item}) => {
             opacity: scale,
           },
         ]}>
-        <SwipeIcon ref={animationRef} />
+        <SwipeIcon open={open} ref={animationRef} />
       </SwipeContainer>
     );
   };

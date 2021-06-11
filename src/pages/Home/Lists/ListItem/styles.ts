@@ -6,6 +6,14 @@ import styled from 'styled-components/native';
 
 import DeleteAnimation from '@assets/animations/delete.json';
 import RFontSize from '@utils/RFontSize';
+import {withProps} from '@utils/withProps';
+
+interface SwipeIconProps {
+  source: object;
+  autoPlay: boolean;
+  loop: boolean;
+  open: boolean;
+}
 
 export const ItemTouchable = styled.TouchableOpacity.attrs({
   activeOpacity: 0.8,
@@ -21,13 +29,14 @@ export const SwipeContainer = styled(Animated.View)`
   flex-direction: row-reverse;
 `;
 
-export const SwipeIcon = styled(LottieView).attrs({
+export const SwipeIcon = withProps<SwipeIconProps>()(styled(LottieView)).attrs({
   source: DeleteAnimation,
   autoPlay: false,
   loop: false,
 })`
   padding: 8px;
   width: 48px;
+  opacity: ${props => (props.open ? 0 : 1)};
 `;
 
 export const ItemContainer = styled.View`
