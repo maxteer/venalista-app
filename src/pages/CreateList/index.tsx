@@ -16,7 +16,7 @@ const CreateList: React.FC = () => {
   const handleTextChange = useCallback(text => {
     setInfo({
       name: text,
-      error: text.length < 8,
+      error: text.length < 4,
     });
   }, []);
 

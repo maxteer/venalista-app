@@ -13,7 +13,7 @@ const Input: React.FC<InputProps> = ({onChangeText, error}) => {
       <ListTitle>Insira o nome da lista:</ListTitle>
       <ListInput onChangeText={onChangeText} />
       {error && (
-        <ListError>O nome precisa conter o mínimo de 8 caracteres.</ListError>
+        <ListError>O nome precisa conter o mínimo de 4 caracteres.</ListError>
       )}
     </Container>
   );
