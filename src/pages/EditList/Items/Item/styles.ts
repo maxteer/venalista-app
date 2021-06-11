@@ -21,7 +21,7 @@ interface SwipeIconProps {
 export const SwipeContainer = styled(Animated.View)`
   margin: 0px 0px 4px 0px;
   flex: 1;
-  background-color: red;
+  background-color: ${props => props.theme.red};
   border-radius: 4px;
   justify-content: flex-end;
   align-items: center;
