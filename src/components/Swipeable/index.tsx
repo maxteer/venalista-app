@@ -93,8 +93,8 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
         outputRange: [0, 1],
       }),
     ).interpolate({
-      inputRange: [-0, leftWidth, leftWidth + 1],
-      outputRange: [-0, leftWidth, leftWidth + 1],
+      inputRange: [-1, -0, leftWidth, leftWidth + 1],
+      outputRange: [0, 0, leftWidth, leftWidth + 1],
     });
     this.transX = transX;
     this.showLeftAction =
