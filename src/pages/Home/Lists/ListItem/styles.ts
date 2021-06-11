@@ -14,7 +14,7 @@ export const ItemTouchable = styled.TouchableOpacity.attrs({
 export const SwipeContainer = styled(Animated.View)`
   margin: 0px 0px 8px 0px;
   flex: 1;
-  background-color: red;
+  background-color: ${props => props.theme.red};
   border-radius: 4px;
   justify-content: flex-end;
   align-items: center;
@@ -23,7 +23,8 @@ export const SwipeContainer = styled(Animated.View)`
 
 export const SwipeIcon = styled(LottieView).attrs({
   source: DeleteAnimation,
-  autoPlay: true,
+  autoPlay: false,
+  loop: false,
 })`
   padding: 8px;
   width: 48px;

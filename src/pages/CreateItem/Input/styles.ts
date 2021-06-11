@@ -15,7 +15,7 @@ export const ListTitle = styled.Text`
 `;
 
 export const ListInput = styled.TextInput.attrs({
-  maxLength: 48,
+  maxLength: 32,
   placeholder: 'Leite',
   placeholderTextColor: '#00081430',
 })`

@@ -1,8 +1,9 @@
-import React, {memo, useCallback, useState} from 'react';
-import {useMemo} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 
-import Swipe from '@components/Swipe';
+import AnimatedLottieView from 'lottie-react-native';
+
+import Swipeable from '@components/Swipeable';
 import {ListItem} from '@contexts/ListsContext';
 import {useLists} from '@hooks/useLists';
 import {ItemTouchable} from '@pages/Home/Lists/ListItem/styles';
@@ -31,28 +32,6 @@ interface ItemProps {
   deselectItem(): void;
 }
 
-const renderLeftActions = (
-  _progress: Animated.AnimatedInterpolation,
-  dragX: Animated.AnimatedInterpolation,
-) => {
-  const scale = dragX.interpolate({
-    inputRange: [0, 40, 80, 240],
-    outputRange: [0, 1, 1, 0],
-    extrapolate: 'clamp',
-  });
-
-  return (
-    <SwipeContainer
-      style={[
-        {
-          opacity: scale,
-        },
-      ]}>
-      <SwipeIcon />
-    </SwipeContainer>
-  );
-};
-
 const Item: React.FC<ItemProps> = ({
   id,
   listIndex,
@@ -61,8 +40,11 @@ const Item: React.FC<ItemProps> = ({
   selectItem,
   deselectItem,
 }) => {
+  const animationRef = useRef<AnimatedLottieView | null>(null);
   const {updateItem, removeItem} = useLists();
 
+  const [open, setOpen] = useState(false);
+  const [height, setHeight] = useState(0);
   const [data, setData] = useState(initialData);
   const initialPrice = useMemo(() => {
     return initialData.price;
@@ -97,57 +79,128 @@ const Item: React.FC<ItemProps> = ({
     [initialData, deselectItem, listIndex, updateItem],
   );
 
+  const handleStart = useCallback(
+    () => animationRef.current?.play(),
+    [animationRef],
+  );
+
   const handleRemove = useCallback(() => {
     deselectItem();
     removeItem(listIndex, id);
   }, [id, listIndex, deselectItem, removeItem]);
 
-  const item = (
-    <ItemContainer
-      disabled={selected}
-      selected={selected}
-      onPress={evt =>
-        selectItem(
-          id,
-          evt.nativeEvent.locationX,
-          evt.nativeEvent.locationY + 100,
-        )
-      }>
-      <ItemHeader>
-        <ItemName selected={selected}>{data.name}</ItemName>
+  const renderLeftActions = (
+    _progress: Animated.AnimatedInterpolation,
+    dragX: Animated.AnimatedInterpolation,
+  ) => {
+    const scale = dragX.interpolate({
+      inputRange: [0, 40],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    });
+
+    const transY = new Animated.Value(height);
+    if (open) {
+      Animated.timing(transY, {
+        duration: 200,
+        toValue: 0,
+        useNativeDriver: true,
+      }).start(({finished}) => {
+        if (finished) {
+          handleRemove();
+        }
+      });
+    }
+
+    return (
+      <SwipeContainer
+        onLayout={evt => setHeight(evt.nativeEvent.layout.height)}
+        style={[
+          {
+            transform: [
+              {
+                translateY: transY.interpolate({
+                  inputRange: [0, height],
+                  outputRange: [-height, 0],
+                }),
+              },
+              {
+                scaleY: transY.interpolate({
+                  inputRange: [0, height],
+                  outputRange: [0, 1],
+                }),
+              },
+            ],
+            opacity: scale,
+          },
+        ]}>
+        <SwipeIcon open={open} ref={animationRef} />
+      </SwipeContainer>
+    );
+  };
+
+  const item = useMemo(
+    () => (
+      <ItemContainer
+        disabled={selected || open}
+        selected={selected}
+        onPress={evt =>
+          selectItem(
+            id,
+            evt.nativeEvent.locationX,
+            evt.nativeEvent.locationY + 100,
+          )
+        }>
+        <ItemHeader>
+          <ItemName selected={selected}>{data.name}</ItemName>
+          {selected && (
+            <ItemTouchable onPress={handleRemove}>
+              <ItemBox>
+                <ItemButton>Excluir</ItemButton>
+              </ItemBox>
+            </ItemTouchable>
+          )}
+        </ItemHeader>
         {selected && (
-          <ItemTouchable onPress={handleRemove}>
-            <ItemBox>
-              <ItemButton>Excluir</ItemButton>
-            </ItemBox>
-          </ItemTouchable>
+          <EditContainer>
+            <EditAmount amount={data.amount} changeAmount={changeAmount} />
+            <EditPrice price={initialPrice} changePrice={changePrice} />
+            <EditMultiply
+              multiply={data.multiply}
+              changeMultiply={changeMultiply}
+            />
+            <EditButton onPress={() => saveItem(id, data)} />
+          </EditContainer>
         )}
-      </ItemHeader>
-      {selected && (
-        <EditContainer>
-          <EditAmount amount={data.amount} changeAmount={changeAmount} />
-          <EditPrice price={initialPrice} changePrice={changePrice} />
-          <EditMultiply
-            multiply={data.multiply}
-            changeMultiply={changeMultiply}
-          />
-          <EditButton onPress={() => saveItem(id, data)} />
-        </EditContainer>
-      )}
-    </ItemContainer>
+      </ItemContainer>
+    ),
+    [
+      id,
+      selected,
+      open,
+      data,
+      initialPrice,
+      selectItem,
+      changeAmount,
+      changePrice,
+      changeMultiply,
+      handleRemove,
+      saveItem,
+    ],
   );
 
   return selected ? (
     item
   ) : (
-    <Swipe
+    <Swipeable
       friction={2}
       leftThreshold={70}
       renderLeftActions={renderLeftActions}
-      onSwipeableLeftOpen={handleRemove}
-      enableTrackpadTwoFingerGesture={true}>
+      onSwipeableStart={handleStart}
+      onSwipeableOpen={() => setOpen(true)}
+      enableTrackpadTwoFingerGesture>
       {item}
-    </Swipe>
+    </Swipeable>
   );
 };
 

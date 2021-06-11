@@ -11,6 +11,13 @@ interface ItemProps {
   selected: boolean;
 }
 
+interface SwipeIconProps {
+  source: object;
+  autoPlay: boolean;
+  loop: boolean;
+  open: boolean;
+}
+
 export const SwipeContainer = styled(Animated.View)`
   margin: 0px 0px 4px 0px;
   flex: 1;
@@ -21,12 +28,15 @@ export const SwipeContainer = styled(Animated.View)`
   flex-direction: row-reverse;
 `;
 
-export const SwipeIcon = styled(LottieView).attrs({
+export const SwipeIcon = withProps<SwipeIconProps>()(styled(LottieView)).attrs({
   source: DeleteAnimation,
-  autoPlay: true,
+  autoPlay: false,
+  loop: false,
 })`
+  margin: 0px 0px 8px 0px;
   padding: 8px;
   width: 48px;
+  opacity: ${props => (props.open ? 0 : 1)};
 `;
 
 export const ItemContainer = withProps<ItemProps>()(
