@@ -6,6 +6,7 @@ declare module 'styled-components' {
     primary: string;
     secondary: string;
     green: string;
+    red: string;
     barStyle: StatusBarStyle;
   }
 }
