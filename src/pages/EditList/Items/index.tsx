@@ -38,7 +38,7 @@ const Items: React.FC<ItemsProps> = ({listIndex}) => {
 
   return (
     <>
-      <Container ref={ref} scrollEnabled={selected === null}>
+      <Container ref={ref}>
         <ListTitle>{name}</ListTitle>
         {items.length > 0 ? (
           items.map((item, index) => (

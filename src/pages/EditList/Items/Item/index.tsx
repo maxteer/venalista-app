@@ -145,11 +145,7 @@ const Item: React.FC<ItemProps> = ({
         disabled={selected || open}
         selected={selected}
         onPress={evt =>
-          selectItem(
-            id,
-            evt.nativeEvent.locationX,
-            evt.nativeEvent.locationY + 50,
-          )
+          selectItem(id, evt.nativeEvent.locationX, evt.nativeEvent.locationY)
         }>
         <ItemHeader>
           <ItemName selected={selected}>{data.name}</ItemName>
