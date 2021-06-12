@@ -1,5 +1,5 @@
 import React, {Component, ReactNode} from 'react';
-import {Animated, View} from 'react-native';
+import {Animated, LayoutChangeEvent, View} from 'react-native';
 import {
   GestureEvent,
   HandlerStateChangeEvent,
@@ -9,7 +9,7 @@ import {
   PanGestureHandlerEventPayload,
 } from 'react-native-gesture-handler';
 
-import {LeftAction, Container} from './styles';
+import {LeftAction, RightAction, Container} from './styles';
 
 const DRAG_TOSS = 0.05;
 
@@ -22,15 +22,33 @@ interface SwipeableProps
   extends Pick<PanGestureHandlerProps, SwipeableExcludes> {
   friction?: number;
   leftThreshold?: number;
+  rightThreshold?: number;
+
   renderLeftActions?(
     progress: Animated.AnimatedInterpolation,
     dragX: Animated.AnimatedInterpolation,
   ): ReactNode;
+  renderRightActions?(
+    progress: Animated.AnimatedInterpolation,
+    dragX: Animated.AnimatedInterpolation,
+  ): ReactNode;
+
   onSwipeableStart?(): void;
+
   onSwipeableWillOpen?(): void;
+  onSwipeableLeftWillOpen?(): void;
+  onSwipeableRightWillOpen?(): void;
+
   onSwipeableOpen?(): void;
+  onSwipeableLeftOpen?(): void;
+  onSwipeableRightOpen?(): void;
+
   onSwipeableWillClose?(): void;
+
   onSwipeableClose?(): void;
+  onSwipeableLeftClose?(): void;
+  onSwipeableRightClose?(): void;
+
   enableTrackpadTwoFingerGesture?: boolean;
 }
 
@@ -39,6 +57,8 @@ interface SwipeableState {
   rowTranslation: Animated.Value;
   rowState: number;
   leftWidth?: number;
+  rightOffset?: number;
+  rowWidth?: number;
 }
 
 class Swipeable extends Component<SwipeableProps, SwipeableState> {
@@ -53,7 +73,6 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
       dragX,
       rowTranslation: new Animated.Value(0),
       rowState: 0,
-      leftWidth: undefined,
     };
     this.updateAnimatedEvent(props, this.state);
 
@@ -66,7 +85,9 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
   UNSAFE_componentWillUpdate(props: SwipeableProps, state: SwipeableState) {
     if (
       this.props.friction !== props.friction ||
-      this.state.leftWidth !== state.leftWidth
+      this.state.leftWidth !== state.leftWidth ||
+      this.state.rightOffset !== state.rightOffset ||
+      this.state.rowWidth !== state.rowWidth
     ) {
       this.updateAnimatedEvent(props, state);
     }
@@ -78,13 +99,17 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
   private transX?: Animated.AnimatedInterpolation;
   private showLeftAction?: Animated.AnimatedInterpolation | Animated.Value;
   private leftActionTranslate?: Animated.AnimatedInterpolation;
+  private showRightAction?: Animated.AnimatedInterpolation | Animated.Value;
+  private rightActionTranslate?: Animated.AnimatedInterpolation;
 
   private updateAnimatedEvent = (
     props: SwipeableProps,
     state: SwipeableState,
   ) => {
     const {friction} = props;
-    const {dragX, rowTranslation, leftWidth = 0} = state;
+    const {dragX, rowTranslation, leftWidth = 0, rowWidth = 0} = state;
+    const {rightOffset = rowWidth} = state;
+    const rightWidth = Math.max(0, rowWidth - rightOffset);
 
     const transX = Animated.add(
       rowTranslation,
@@ -93,8 +118,13 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
         outputRange: [0, 1],
       }),
     ).interpolate({
-      inputRange: [-1, -0, leftWidth, leftWidth + 1],
-      outputRange: [0, 0, leftWidth, leftWidth + 1],
+      inputRange: [-rightWidth - 1, -rightWidth, leftWidth, leftWidth + 1],
+      outputRange: [
+        this.props.renderRightActions ? -rightWidth - 1 : -0,
+        -rightWidth,
+        this.props.renderLeftActions ? leftWidth : 0,
+        leftWidth + 1,
+      ],
     });
     this.transX = transX;
     this.showLeftAction =
@@ -105,6 +135,18 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
           })
         : new Animated.Value(0);
     this.leftActionTranslate = this.showLeftAction.interpolate({
+      inputRange: [0, Number.MIN_VALUE],
+      outputRange: [-10000, 0],
+      extrapolate: 'clamp',
+    });
+    this.showRightAction =
+      rightWidth > 0
+        ? transX.interpolate({
+            inputRange: [-rightWidth, 0, 1],
+            outputRange: [1, 0, 0],
+          })
+        : new Animated.Value(0);
+    this.rightActionTranslate = this.showRightAction.interpolate({
       inputRange: [0, Number.MIN_VALUE],
       outputRange: [-10000, 0],
       extrapolate: 'clamp',
@@ -130,9 +172,15 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
     >,
   ) => {
     const {velocityX, translationX: dragX} = evt;
-    const {leftWidth = 0, rowState} = this.state;
+    const {leftWidth = 0, rowWidth = 0, rowState} = this.state;
+    const {rightOffset = rowWidth} = this.state;
+    const rightWidth = rowWidth - rightOffset;
 
-    const {friction, leftThreshold = leftWidth / 2} = this.props;
+    const {
+      friction,
+      leftThreshold = leftWidth / 2,
+      rightThreshold = rightWidth / 2,
+    } = this.props;
 
     const startOffsetX = this.currentOffset() + dragX / friction!;
     const translationX = (dragX + DRAG_TOSS * velocityX) / friction!;
@@ -141,10 +189,16 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
     if (rowState === 0) {
       if (translationX > leftThreshold) {
         toValue = leftWidth;
+      } else if (translationX < -rightThreshold) {
+        toValue = -rightWidth;
       }
     } else if (rowState === 1) {
       if (translationX > -leftThreshold) {
         toValue = leftWidth;
+      }
+    } else {
+      if (translationX < rightThreshold) {
+        toValue = -rightWidth;
       }
     }
 
@@ -171,33 +225,58 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
     }).start(({finished}) => {
       if (finished) {
         if (toValue > 0) {
-          this.props.onSwipeableOpen?.();
+          this.props.onSwipeableLeftOpen?.();
+        } else if (toValue < 0) {
+          this.props.onSwipeableRightOpen?.();
         }
 
         if (toValue === 0) {
+          if (fromValue > 0) {
+            this.props.onSwipeableLeftClose?.();
+          } else if (fromValue < 0) {
+            this.props.onSwipeableRightClose?.();
+          }
+
           this.props.onSwipeableClose?.();
+        } else {
+          this.props.onSwipeableOpen?.();
         }
       }
     });
 
     if (toValue > 0) {
       this.props.onSwipeableWillOpen?.();
+    } else if (toValue < 0) {
+      this.props.onSwipeableRightWillOpen?.();
     }
 
     if (toValue === 0) {
       this.props.onSwipeableWillClose?.();
+    } else {
+      this.props.onSwipeableWillOpen?.();
     }
   };
 
-  private currentOffset = () => {
-    const {leftWidth = 0, rowState} = this.state;
-    return rowState === 1 ? leftWidth : 0;
+  private onRowLayout = ({nativeEvent}: LayoutChangeEvent) => {
+    this.setState({rowWidth: nativeEvent.layout.width});
   };
 
-  private close = () => this.animateRow(this.currentOffset(), 0);
+  private currentOffset = () => {
+    const {leftWidth = 0, rowWidth = 0, rowState} = this.state;
+    const {rightOffset = rowWidth} = this.state;
+    const rightWidth = rowWidth - rightOffset;
+    if (rowState === 1) {
+      return leftWidth;
+    } else if (rowState === -1) {
+      return -rightWidth;
+    }
+    return 0;
+  };
+
+  public close = () => this.animateRow(this.currentOffset(), 0);
 
   render() {
-    const {children, renderLeftActions} = this.props;
+    const {children, renderLeftActions, renderRightActions} = this.props;
 
     const left = renderLeftActions && (
       <LeftAction
@@ -213,14 +292,29 @@ class Swipeable extends Component<SwipeableProps, SwipeableState> {
       </LeftAction>
     );
 
+    const right = renderRightActions && (
+      <RightAction
+        style={{
+          transform: [{translateX: this.rightActionTranslate!}],
+        }}>
+        {renderRightActions(this.showRightAction!, this.transX!)}
+        <View
+          onLayout={({nativeEvent}) => {
+            this.setState({rightOffset: nativeEvent.layout.x});
+          }}
+        />
+      </RightAction>
+    );
+
     return (
       <PanGestureHandler
         activeOffsetX={[-10, 10]}
         {...this.props}
         onGestureEvent={this.onGestureEvent}
         onHandlerStateChange={this.onHandlerStateChange}>
-        <Container>
+        <Container onLayout={this.onRowLayout}>
           {left}
+          {right}
           <Animated.View
             style={[
               {
