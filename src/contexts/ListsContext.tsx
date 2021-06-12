@@ -1,9 +1,8 @@
 import React, {useEffect} from 'react';
 import {useCallback, useState, createContext} from 'react';
+import uuid from 'react-native-uuid';
 
 import {loadData, saveData} from '@services/storage';
-
-import {generateHash} from '@utils/Hash';
 
 export interface List {
   id?: string;
@@ -18,6 +17,7 @@ export interface ListItem {
   amount: number;
   price: number;
   multiply: boolean;
+  checked: boolean;
 }
 
 export interface ContextType {
@@ -26,6 +26,7 @@ export interface ContextType {
   removeList(listId: number): void;
   addNewItem(listId: number, itemData: ListItem): void;
   removeItem(listId: number, itemId: number): void;
+  checkItem(listId: number, itemId: number): void;
   updateItem(listId: number, itemId: number, itemData: ListItem): void;
   totalAmount(listId: number): string;
 }
@@ -42,7 +43,7 @@ export const ListsProvider: React.FC = ({children}) => {
 
   const addNewList = useCallback(list => {
     setLists(state => {
-      const result = [{id: generateHash(), ...list}, ...state];
+      const result = [{id: uuid.v4(), ...list}, ...state];
       saveData(result);
       return result;
     });
@@ -61,7 +62,7 @@ export const ListsProvider: React.FC = ({children}) => {
     setLists(state => {
       state[listId] = {
         ...state[listId],
-        items: [{id: generateHash(), ...itemData}, ...state[listId].items],
+        items: [{id: uuid.v4(), ...itemData}, ...state[listId].items],
       };
       const result = [...state];
       saveData(result);
@@ -75,6 +76,16 @@ export const ListsProvider: React.FC = ({children}) => {
       state[listId] = {
         ...state[listId],
       };
+      const result = [...state];
+      saveData(result);
+      return result;
+    });
+  }, []);
+
+  const checkItem = useCallback((listId, itemId) => {
+    setLists(state => {
+      const itemData = state[listId].items[itemId];
+      state[listId].items[itemId] = {...itemData, checked: !itemData.checked};
       const result = [...state];
       saveData(result);
       return result;
@@ -109,6 +120,7 @@ export const ListsProvider: React.FC = ({children}) => {
         removeList,
         addNewItem,
         removeItem,
+        checkItem,
         updateItem,
         totalAmount,
       }}>
