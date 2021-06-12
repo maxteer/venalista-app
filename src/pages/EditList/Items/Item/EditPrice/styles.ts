@@ -41,16 +41,3 @@ export const PriceBox = styled.View`
   margin: -2px 8px -6px -4px;
   border-radius: 4px;
 `;
-
-export const Price = styled.TextInput.attrs(props => ({
-  autoCorrect: false,
-  keyboardType: 'numeric',
-  placeholderTextColor: `${props.theme.primary}40`,
-}))`
-  width: 120%;
-  padding: 6px 8px 8px 8px;
-  color: ${props => props.theme.primary};
-  font-size: ${RFontSize(14)}px;
-  font-family: 'Satoshi-Bold';
-  text-align: center;
-`;

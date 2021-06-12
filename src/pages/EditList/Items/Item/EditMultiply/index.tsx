@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 
 import {Container, Label, MultiplyBox, Multiply} from './styles';
 
@@ -7,7 +7,7 @@ interface EditMultiplyProps {
   changeMultiply(multiply: boolean): void;
 }
 
-const EditPrice: React.FC<EditMultiplyProps> = ({
+const EditMultiply: React.FC<EditMultiplyProps> = ({
   multiply = true,
   changeMultiply,
 }) => {
@@ -21,4 +21,4 @@ const EditPrice: React.FC<EditMultiplyProps> = ({
   );
 };
 
-export default EditPrice;
+export default memo(EditMultiply);

@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 
+import CurrencyInput from './CurrencyInput';
 import {
   Container,
   Label,
@@ -7,7 +8,6 @@ import {
   CurrencyBox,
   Currency,
   PriceBox,
-  Price,
 } from './styles';
 
 interface EditPriceProps {
@@ -24,11 +24,12 @@ const EditPrice: React.FC<EditPriceProps> = ({price, changePrice}) => {
           <Currency>R$</Currency>
         </CurrencyBox>
         <PriceBox>
-          <Price
-            defaultValue={price.toFixed(2).replace(/\./g, ',')}
-            onChangeText={text =>
-              changePrice(Number(text.replace(/,/g, '.')) || 0.0)
-            }
+          <CurrencyInput
+            value={price}
+            onChangeValue={changePrice}
+            delimiter="."
+            separator=","
+            precision={2}
           />
         </PriceBox>
       </Group>

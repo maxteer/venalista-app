@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 
 import {
   Container,
@@ -34,4 +34,4 @@ const EditAmount: React.FC<EditAmountProps> = ({amount, changeAmount}) => (
   </Container>
 );
 
-export default EditAmount;
+export default memo(EditAmount);
