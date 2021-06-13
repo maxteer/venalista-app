@@ -90,8 +90,8 @@ const Item: React.FC<ItemProps> = ({
   const handleAnimations = useCallback(() => {
     deleteRef.current?.play();
     checkRef.current?.play(
-      initialData.checked ? 40 : 0,
-      initialData.checked ? 0 : 40,
+      initialData.checked ? 60 : 0,
+      initialData.checked ? 0 : 60,
     );
   }, [deleteRef, checkRef, initialData]);
 

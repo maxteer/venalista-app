@@ -49,7 +49,7 @@ export const SwipeIcon = withProps<SwipeIconProps>()(styled(LottieView)).attrs(
     loop: false,
   }),
 )`
-  margin: 0px 0px ${props => (props.type === 'check' ? '-8px' : '8px')} 0px;
+  margin: 0px 0px ${props => (props.type === 'check' ? '0px' : '8px')} 0px;
   padding: 8px;
   width: ${props => (props.type === 'check' ? '64px' : '48px')};
   opacity: ${props =>
