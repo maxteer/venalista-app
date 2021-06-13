@@ -30,6 +30,7 @@ const Button: React.FC<ButtonProps> = ({name, error}) => {
       amount: 0,
       price: 0.0,
       multiply: true,
+      checked: false,
     });
     navigation.navigate('EditList', {
       params: {

@@ -40,15 +40,18 @@ const Item: React.FC<ItemProps> = ({
   selectItem,
   deselectItem,
 }) => {
-  const animationRef = useRef<AnimatedLottieView | null>(null);
-  const {updateItem, removeItem} = useLists();
+  const swipeRef = useRef<Swipeable | null>(null);
+  const deleteRef = useRef<AnimatedLottieView | null>(null);
+  const checkRef = useRef<AnimatedLottieView | null>(null);
+
+  const {updateItem, removeItem, checkItem} = useLists();
 
   const [open, setOpen] = useState(false);
-  const [height, setHeight] = useState(0);
+  const [right, setRight] = useState(false);
+
+  const [leftHeight, setLeftHeight] = useState(0);
+
   const [data, setData] = useState(initialData);
-  const initialPrice = useMemo(() => {
-    return initialData.price;
-  }, [initialData]);
 
   const changeAmount = useCallback(add => {
     setData(state => {
@@ -79,15 +82,29 @@ const Item: React.FC<ItemProps> = ({
     [initialData, deselectItem, listIndex, updateItem],
   );
 
-  const handleStart = useCallback(
-    () => animationRef.current?.play(),
-    [animationRef],
+  const handleOpen = useCallback(
+    evt => selectItem(id, evt.nativeEvent.locationX, evt.nativeEvent.locationY),
+    [id, selectItem],
   );
+
+  const handleAnimations = useCallback(() => {
+    deleteRef.current?.play();
+    checkRef.current?.play(
+      initialData.checked ? 40 : 0,
+      initialData.checked ? 0 : 40,
+    );
+  }, [deleteRef, checkRef, initialData]);
 
   const handleRemove = useCallback(() => {
     deselectItem();
     removeItem(listIndex, id);
   }, [id, listIndex, deselectItem, removeItem]);
+
+  const handleCheck = useCallback(() => {
+    setRight(true);
+    swipeRef.current?.close();
+    checkItem(listIndex, id);
+  }, [id, listIndex, swipeRef, checkItem]);
 
   const renderLeftActions = (
     _progress: Animated.AnimatedInterpolation,
@@ -99,7 +116,7 @@ const Item: React.FC<ItemProps> = ({
       extrapolate: 'clamp',
     });
 
-    const transY = new Animated.Value(height);
+    const transY = new Animated.Value(leftHeight);
     if (open) {
       Animated.timing(transY, {
         duration: 200,
@@ -114,19 +131,20 @@ const Item: React.FC<ItemProps> = ({
 
     return (
       <SwipeContainer
-        onLayout={evt => setHeight(evt.nativeEvent.layout.height)}
+        type="delete"
+        onLayout={evt => setLeftHeight(evt.nativeEvent.layout.height)}
         style={[
           {
             transform: [
               {
                 translateY: transY.interpolate({
-                  inputRange: [0, height],
-                  outputRange: [-height, 0],
+                  inputRange: [0, leftHeight],
+                  outputRange: [-leftHeight, 0],
                 }),
               },
               {
                 scaleY: transY.interpolate({
-                  inputRange: [0, height],
+                  inputRange: [0, leftHeight],
                   outputRange: [0, 1],
                 }),
               },
@@ -134,7 +152,36 @@ const Item: React.FC<ItemProps> = ({
             opacity: scale,
           },
         ]}>
-        <SwipeIcon open={open} ref={animationRef} />
+        <SwipeIcon type="delete" open={open} ref={deleteRef} />
+      </SwipeContainer>
+    );
+  };
+
+  const renderRightActions = (
+    _progress: Animated.AnimatedInterpolation,
+    dragX: Animated.AnimatedInterpolation,
+  ) => {
+    const scale = dragX.interpolate({
+      inputRange: [-40, 0],
+      outputRange: [1, 0],
+      extrapolate: 'clamp',
+    });
+
+    return (
+      <SwipeContainer
+        type="check"
+        checked={initialData.checked}
+        style={[
+          {
+            opacity: scale,
+          },
+        ]}>
+        <SwipeIcon
+          type="check"
+          checked={right}
+          open={initialData.checked}
+          ref={checkRef}
+        />
       </SwipeContainer>
     );
   };
@@ -142,11 +189,10 @@ const Item: React.FC<ItemProps> = ({
   const item = useMemo(
     () => (
       <ItemContainer
+        checked={initialData.checked}
         disabled={selected || open}
         selected={selected}
-        onPress={evt =>
-          selectItem(id, evt.nativeEvent.locationX, evt.nativeEvent.locationY)
-        }>
+        onPress={handleOpen}>
         <ItemHeader>
           <ItemName selected={selected}>{data.name}</ItemName>
           {selected && (
@@ -160,7 +206,7 @@ const Item: React.FC<ItemProps> = ({
         {selected && (
           <EditContainer>
             <EditAmount amount={data.amount} changeAmount={changeAmount} />
-            <EditPrice price={initialPrice} changePrice={changePrice} />
+            <EditPrice price={data.price} changePrice={changePrice} />
             <EditMultiply
               multiply={data.multiply}
               changeMultiply={changeMultiply}
@@ -173,13 +219,13 @@ const Item: React.FC<ItemProps> = ({
     [
       id,
       selected,
+      initialData,
       open,
       data,
-      initialPrice,
-      selectItem,
       changeAmount,
       changePrice,
       changeMultiply,
+      handleOpen,
       handleRemove,
       saveItem,
     ],
@@ -189,11 +235,16 @@ const Item: React.FC<ItemProps> = ({
     item
   ) : (
     <Swipeable
+      ref={swipeRef}
       friction={2}
       leftThreshold={70}
+      rightThreshold={70}
       renderLeftActions={renderLeftActions}
-      onSwipeableStart={handleStart}
-      onSwipeableOpen={() => setOpen(true)}
+      renderRightActions={renderRightActions}
+      onSwipeableStart={handleAnimations}
+      onSwipeableLeftOpen={() => setOpen(true)}
+      onSwipeableRightOpen={() => handleCheck()}
+      onSwipeableRightClose={() => setRight(false)}
       enableTrackpadTwoFingerGesture>
       {item}
     </Swipeable>

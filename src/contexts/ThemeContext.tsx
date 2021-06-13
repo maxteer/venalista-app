@@ -24,6 +24,7 @@ export const ThemeProvider: React.FC = ({children}) => {
         secondary: colorScheme === 'dark' ? '#fffdf7' : '#000814',
         green: '#04e762',
         red: '#ea4335',
+        checked: '#0ee7e7',
         barStyle: colorScheme === 'dark' ? 'light-content' : 'dark-content',
       }}>
       {children}

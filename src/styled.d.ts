@@ -7,6 +7,7 @@ declare module 'styled-components' {
     secondary: string;
     green: string;
     red: string;
+    checked: string;
     barStyle: StatusBarStyle;
   }
 }

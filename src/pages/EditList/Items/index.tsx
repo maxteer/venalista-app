@@ -41,17 +41,19 @@ const Items: React.FC<ItemsProps> = ({listIndex}) => {
       <Container ref={ref}>
         <ListTitle>{name}</ListTitle>
         {items.length > 0 ? (
-          items.map((item, index) => (
-            <Item
-              key={item.id}
-              id={index}
-              listIndex={listIndex}
-              initialData={item}
-              selected={selected === index}
-              selectItem={selectItem}
-              deselectItem={deselectItem}
-            />
-          ))
+          items
+            .sort((a, b) => Number(a.checked) - Number(b.checked))
+            .map((item, index) => (
+              <Item
+                key={item.id}
+                id={index}
+                listIndex={listIndex}
+                initialData={item}
+                selected={selected === index}
+                selectItem={selectItem}
+                deselectItem={deselectItem}
+              />
+            ))
         ) : (
           <EmptyMargin>
             <Empty />
