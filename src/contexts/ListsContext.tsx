@@ -1,8 +1,8 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useCallback, useState, createContext} from 'react';
 import uuid from 'react-native-uuid';
 
-import {loadData, saveData} from '@services/storage';
+import {saveData} from '@services/storage';
 
 export interface List {
   id?: string;
@@ -31,15 +31,17 @@ export interface ContextType {
   totalAmount(listId: number): string;
 }
 
+interface ListsProviderProps {
+  initialState: List[];
+}
+
 export const ListsContext = createContext<ContextType>({} as ContextType);
 
-export const ListsProvider: React.FC = ({children}) => {
-  const [lists, setLists] = useState([] as List[]);
-
-  useEffect(() => {
-    const fetchData = async () => setLists(await loadData());
-    fetchData();
-  }, []);
+export const ListsProvider: React.FC<ListsProviderProps> = ({
+  initialState,
+  children,
+}) => {
+  const [lists, setLists] = useState(initialState);
 
   const addNewList = useCallback(list => {
     setLists(state => {
