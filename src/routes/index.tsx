@@ -57,8 +57,8 @@ export default () => {
             setInitialState(progress),
           );
           await installUpdate();
-        } catch (err) {
-          console.error(err);
+        } catch {
+          setInitialState(undefined);
         }
       } else {
         setInitialState(undefined);

@@ -1,10 +1,10 @@
 {
   "name": "venalista",
-  "version": "0.0.1",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "postversion": "react-native-version --t android",
+    "postversion": "react-native-version --target android",
     "release": "react-native run-android --variant=release",
     "build": "cd android && ./gradlew assembleRelease && cd ..",
     "start": "react-native start",
