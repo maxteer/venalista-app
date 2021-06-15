@@ -13,9 +13,6 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
-      <service
-        android:name=".MimeIntentModule"
-        android:exported="true" />
       <provider
         android:name="androidx.core.content.FileProvider"
         android:authorities="${applicationId}.fileProvider"

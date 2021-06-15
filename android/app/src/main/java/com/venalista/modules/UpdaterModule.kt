@@ -77,9 +77,8 @@ class UpdaterModule(private val reactContext: ReactApplicationContext) : ReactCo
 
   @ReactMethod
   fun installUpdate(promise: Promise) {
-    val fileName = "update.apk"
     val mimeType = "application/vnd.android.package-archive"
-    val file = File(reactContext.getExternalFilesDir(null), fileName)
+    val file = File(reactContext.getExternalFilesDir(null), "update.apk")
     var uri = Uri.fromFile(file)
     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
       uri = FileProvider.getUriForFile(reactContext, BuildConfig.APPLICATION_ID + ".fileProvider", file)
