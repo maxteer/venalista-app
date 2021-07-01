@@ -29,9 +29,6 @@ const verticalIOS = {
   cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
 } as StackNavigationOptions;
 
-const sleep = async (time: number) =>
-  await new Promise(resolve => setTimeout(resolve, time));
-
 export default () => {
   const [initialState, setInitialState] = useState<List[] | string | number>();
 
@@ -47,10 +44,8 @@ export default () => {
       const response = await updater.response();
       if (response.update) {
         setInitialState(`Nova versão encontrada: ${response.update.name}`);
-        await sleep(500);
 
         setInitialState('Iniciando download...');
-        await sleep(500);
 
         try {
           await downloadUpdate(response.update.downloadUrl, progress =>
@@ -65,7 +60,6 @@ export default () => {
       }
 
       const lists = await loadData();
-      await sleep(500);
       setInitialState(lists);
     };
     fetchData();
