@@ -1,6 +1,6 @@
 {
   "name": "venalista",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -76,6 +76,7 @@
     "eslint": "^7.14.0",
     "eslint-plugin-import-helpers": "^1.1.0",
     "jest": "^26.6.3",
+    "jetifier": "^2.0.0",
     "metro-react-native-babel-preset": "^0.64.0",
     "react-devtools": "^4.13.5",
     "react-native-version": "^4.0.0",

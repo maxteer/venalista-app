@@ -41,9 +41,16 @@ const Items: React.FC<ItemsProps> = ({listIndex}) => {
       <Container ref={ref}>
         <ListTitle>{name}</ListTitle>
         {items.length > 0 ? (
-          items
-            .sort((a, b) => Number(a.checked) - Number(b.checked))
-            .map((item, index) => (
+          [
+            ...items
+              .filter(item => !item.checked)
+              .sort((a, b) => a.name.localeCompare(b.name)),
+            ...items
+              .filter(item => item.checked)
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          ].map(item => {
+            const index = items.indexOf(item);
+            return (
               <Item
                 key={item.id}
                 id={index}
@@ -53,7 +60,8 @@ const Items: React.FC<ItemsProps> = ({listIndex}) => {
                 selectItem={selectItem}
                 deselectItem={deselectItem}
               />
-            ))
+            );
+          })
         ) : (
           <EmptyMargin>
             <Empty />
